@@ -1,0 +1,25 @@
+Git Runner
+Copyright 2026 Hanzo AI, Inc.
+
+This product is a fork of the Gitea Actions runner (act_runner),
+https://gitea.com/gitea/runner, Copyright (c) The Gitea Authors, licensed
+under the MIT License (see LICENSE).
+
+act_runner itself embeds and builds upon nektos/act
+(https://github.com/nektos/act), Copyright (c) The nektos/act Authors, also
+under the MIT License.
+
+Modifications by Hanzo AI, Inc.:
+  - Go module import path -> github.com/hanzo-git/runner.
+  - Wire protocol dependency -> github.com/hanzo-git/actions-proto-go
+    (protobuf identities preserved for server compatibility).
+  - Command/binary and env contract rebranded to the generic GIT_* form
+    (GIT_INSTANCE_URL / GIT_RUNNER_TOKEN / ...).
+  - Fully de-gitea'd: no "gitea" identifiers remain. The expression context is
+    `git` (with a `hanzo` alias); server task-context fields are `git_*`
+    (git_runtime_token, git_default_actions_url). No back-compat aliases — this
+    runner targets a matching `git`-dialect server, not stock Gitea.
+  - Default job images -> ghcr.io/hanzoai/runner-ubuntu.
+
+Deployment-time white-label branding (e.g. "Hanzo Git") is applied by the
+server, never compiled into this binary.

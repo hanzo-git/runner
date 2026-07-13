@@ -1,0 +1,16 @@
+/git-runner
+.env
+!/act/runner/testdata/secrets/.env
+.runner
+coverage.txt
+.tmp/
+/config.yaml
+
+# Jetbrains
+.idea
+# MS VSCode
+.vscode
+__debug_bin
+# gorelease binary folder
+/dist
+.DS_Store
