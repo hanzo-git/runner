@@ -42,6 +42,31 @@ func TestExecuteArgsPaths(t *testing.T) {
 	require.Equal(t, workdir, args.Workdir())
 }
 
+func TestDetectWorkflowsDir(t *testing.T) {
+	// none present -> "" so the caller keeps its -W default.
+	require.Empty(t, detectWorkflowsDir(t.TempDir()))
+
+	// each supported dir is detected on its own, incl the .github compat alias.
+	for _, dir := range workflowDirs {
+		wd := t.TempDir()
+		require.NoError(t, os.MkdirAll(filepath.Join(wd, dir), 0o755))
+		require.Equal(t, dir, detectWorkflowsDir(wd))
+	}
+
+	// the native .hanzo/workflows wins when several exist.
+	all := t.TempDir()
+	for _, dir := range workflowDirs {
+		require.NoError(t, os.MkdirAll(filepath.Join(all, dir), 0o755))
+	}
+	require.Equal(t, ".hanzo/workflows", detectWorkflowsDir(all))
+
+	// .gitea is preferred over .github when the native dir is absent.
+	compat := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(compat, ".gitea/workflows"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(compat, ".github/workflows"), 0o755))
+	require.Equal(t, ".gitea/workflows", detectWorkflowsDir(compat))
+}
+
 func TestExecuteArgsLoadVars(t *testing.T) {
 	require.Empty(t, (&executeArgs{}).LoadVars())
 

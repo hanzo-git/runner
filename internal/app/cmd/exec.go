@@ -72,6 +72,27 @@ func (i *executeArgs) WorkflowsPath() string {
 	return i.resolve(i.workflowsPath)
 }
 
+// workflowDirs is the native-first scan order used when -W is not given:
+// .hanzo/workflows is Hanzo Git's own home; .gitea/workflows and
+// .github/workflows are compat aliases. Mirrors the server-side detection so a
+// local `exec` runs the same workflows git.hanzo.ai would dispatch.
+var workflowDirs = []string{".hanzo/workflows", ".gitea/workflows", ".github/workflows"}
+
+// detectWorkflowsDir returns the first of workflowDirs that exists as a
+// directory under workdir, or "" when none do (the caller then keeps the -W
+// default).
+func detectWorkflowsDir(workdir string) string {
+	if workdir == "" {
+		workdir = "."
+	}
+	for _, d := range workflowDirs {
+		if fi, err := os.Stat(filepath.Join(workdir, d)); err == nil && fi.IsDir() {
+			return d
+		}
+	}
+	return ""
+}
+
 // Envfile returns path to .env
 func (i *executeArgs) Envfile() string {
 	return i.resolve(i.envfile)
@@ -315,6 +336,14 @@ func runExecList(planner model.WorkflowPlanner, execArgs *executeArgs) error {
 
 func runExec(ctx context.Context, execArgs *executeArgs) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
+		// When -W is not given, prefer the native .hanzo/workflows dir, then
+		// the .gitea/.github compat aliases, matching what git.hanzo.ai
+		// dispatches — so a local run finds the same workflows.
+		if !cmd.Flags().Changed("workflows") {
+			if d := detectWorkflowsDir(execArgs.workdir); d != "" {
+				execArgs.workflowsPath = d
+			}
+		}
 		planner, err := model.NewWorkflowPlanner(execArgs.WorkflowsPath(), execArgs.noWorkflowRecurse)
 		if err != nil {
 			return err
