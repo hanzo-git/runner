@@ -1,6 +1,6 @@
 module github.com/hanzo-git/runner
 
-go 1.26.0
+go 1.26.8
 
 require (
 	connectrpc.com/connect v1.20.0
