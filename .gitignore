@@ -14,3 +14,8 @@ __debug_bin
 # gorelease binary folder
 /dist
 .DS_Store
+
+# Local symlinks to LLM.md
+CLAUDE.md
+AGENTS.md
+GEMINI.md
